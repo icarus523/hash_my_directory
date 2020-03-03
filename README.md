@@ -31,4 +31,8 @@ SEED = "0000000000000000000000000000000000000000" # note: in Hash Calc to compar
 - No issues with path length in Windows
 
 # To Use
-In your file navigation browser, copy the complete path that you wish to hash. 
+1. Open hash_my_directory.py in IDLE (default python text editor) 
+2. Make changes based on your hashing parameters, i.e. Seed, HMAC, types of algorithms to use.
+3. In your file navigation browser, copy the complete path that you wish to hash. 
+4. Paste the path to the directory in the dialog window that pops up, and hit Enter
+3. Review results. 
