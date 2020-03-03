@@ -1,16 +1,19 @@
 import getpass
 import logging
 import os
-# import glob
+import time
 import hashlib
+import hmac
 
 from tkinter import *
 from tkinter import filedialog
 from datetime import datetime
 
 ## Change this only ##
-HASHING_ALGORITHMS = ['sha256'] # choose/add (as a list) from below
+HASHING_ALGORITHMS = ['sha256','sha1','md5'] # choose/add (as a list) from below
 ACCEPTABLE_ALGORITHMS = ['sha3_512', 'sha512', 'sha3_384', 'sha3_384', 'mdc2', 'md5', 'sha3_384', 'sha1','sha256','sha224', 'sha512_224', 'sha512_224','sha3_224']
+HMAC = False 
+SEED = "0000000000000000000000000000000000000000" # note: in Hash Calc to compare use Hex String = '00'
 ######################
 
 MAXIMUM_BLOCKSIZE_TO_READ = 65535
@@ -24,8 +27,25 @@ logging.basicConfig(level=logging.DEBUG,
         filemode='w') # overwrite the log 'a' - appends to it
 
 class HashMyDirectory: 
+
+    # input: file to be hashed using hmac-sha1
+    # output: hexdigest of input file    
+    def dohash_hmacsha(self, fname, dm, chunksize=8192):
+        # change this if you want other hashing types for HMAC, e.g. hashlib.md5
+        key = bytes.fromhex(self.seed)
+        m = hmac.new(key, digestmod = dm.name) 
+        
+        # Read in chunksize blocks at a time
+        with open(fname, 'rb') as f:
+            while True:
+                block = f.read(chunksize)
+                if not block: break
+                m.update(block)      
+        
+        return m.hexdigest()
  
     def dohash(self, fname, m, chunksize=8192):
+        # time.sleep(1) 
         # Read in chunksize blocks at a time
         with open(fname, 'rb') as f:
             while True:
@@ -38,7 +58,7 @@ class HashMyDirectory:
     def logResult(self, results_l, path, fname):
         hashes = ''
         result_str = ''
-        
+
         for i in range(len(results_l)):
             hashes = hashes + results_l[i] + "\t" 
 
@@ -51,7 +71,10 @@ class HashMyDirectory:
         logging.getLogger().info(def_str)
         heading_str = ''
         for i in range(len(HASHING_ALGORITHMS)):
-            heading_str = heading_str + HASHING_ALGORITHMS[i] + "\t"
+            if HMAC and HASHING_ALGORITHMS[i].startswith('sha'): 
+                heading_str = heading_str + "HMAC-"+HASHING_ALGORITHMS[i] + "\t"                
+            else: 
+                heading_str = heading_str + HASHING_ALGORITHMS[i] + "\t"
 
         heading_str = heading_str + "PATH" + "\t" + "FILENAME"  # change order here
 
@@ -90,6 +113,7 @@ class HashMyDirectory:
         self.logHeadings()        
         self.root=Tk()
         self.root.withdraw() # hide Tk windows
+        self.seed = SEED
 
         # select directory
         my_directory = filedialog.askdirectory(initialdir='.',title='Select Directory to Hash contents')
@@ -98,7 +122,7 @@ class HashMyDirectory:
         file_list = list() 
         for rootfs, dirs, files in os.walk(my_directory, topdown=True):
            for name in files:
-              file_list.append(os.path.join(rootfs, name))
+              file_list.append(os.path.join(rootfs.replace("\\","/"), name)) # replace backslashes with forward slashes in path
 
         # generate a hash for each file
         for fname in file_list:
@@ -116,7 +140,10 @@ class HashMyDirectory:
                     m = self.getHashLib(h_alg)
                     hash_result = dict() 
                     hash_result['type'] = h_alg
-                    hash_result['value'] = self.dohash(fname, m, MAXIMUM_BLOCKSIZE_TO_READ) # generate SHA256 hash
+                    if HMAC and h_alg.startswith('sha'): 
+                        hash_result['value'] = self.dohash_hmacsha(fname, m, MAXIMUM_BLOCKSIZE_TO_READ) # generate SHA256 hash                       
+                    else: 
+                        hash_result['value'] = self.dohash(fname, m, MAXIMUM_BLOCKSIZE_TO_READ) # generate SHA256 hash
 
                     results.append(hash_result['value'])
 
