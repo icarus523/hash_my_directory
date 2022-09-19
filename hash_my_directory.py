@@ -10,8 +10,8 @@ from tkinter import filedialog
 from datetime import datetime
 
 ## Change this only ##
-HASHING_ALGORITHMS = ['sha256','sha1','md5'] # choose/add (as a list) from below
-ACCEPTABLE_ALGORITHMS = ['sha3_512', 'sha512', 'sha3_384', 'sha3_384', 'mdc2', 'md5', 'sha3_384', 'sha1','sha256','sha224', 'sha512_224', 'sha512_224','sha3_224']
+HASHING_ALGORITHMS = ['sha256'] # choose/add (as a list) from below
+ACCEPTABLE_ALGORITHMS = ['sha3_512', 'sha512', 'sha3_384', 'mdc2', 'md5', 'sha1','sha256','sha224', 'sha512_224', 'sha3_224']
 HMAC = False 
 SEED = "0000000000000000000000000000000000000000" # note: in Hash Calc to compare use Hex String = '00'
 ######################
@@ -62,7 +62,11 @@ class HashMyDirectory:
         for i in range(len(results_l)):
             hashes = hashes + results_l[i] + "\t" 
 
-        result_str = hashes + path + "\t" + fname # change order here
+        # For neet output (default)
+        #result_str = hashes + path + "\t" + fname # change order here
+
+        # For CHK38
+        result_str = fname + "\t" + hashes # change order here
 
         logging.getLogger().info(result_str)
 
@@ -147,7 +151,7 @@ class HashMyDirectory:
 
                     results.append(hash_result['value'])
 
-            self.logResult(results, os.path.dirname(fname), os.path.basename(fname))
+                self.logResult(results, os.path.dirname(fname), os.path.basename(fname))
 
         os.startfile(LOGGER_FNAME) # open the log file
 
